@@ -93,16 +93,29 @@ with col_list:
     for p in productos:
         proveedor_nombre = (p.get("proveedores") or {}).get("nombre", "—")
         bajo_stock = float(p["stock"]) <= float(p.get("stock_minimo") or 0)
+
         with st.container(border=True):
             c1, c2 = st.columns([5, 1])
             with c1:
-                titulo = f"**{p['nombre']}**  ·  {p.get('categoria') or 'Sin categoría'}"
+                badge = ""
                 if bajo_stock:
-                    titulo += "  ⚠️ *stock bajo*"
-                st.markdown(titulo)
-                st.write(
-                    f"Stock: **{p['stock']}**  ·  Compra: ${p['precio_compra']:,.0f}  ·  "
-                    f"Venta: ${p['precio_venta']:,.0f}  ·  Proveedor: {proveedor_nombre}"
+                    badge = (
+                        """<span style="background:#fcebeb; color:#791f1f; font-size:12px; """
+                        """font-weight:600; padding:2px 10px; border-radius:12px; margin-left:8px;">"""
+                        """⚠️ Stock bajo</span>"""
+                    )
+                st.markdown(
+                    f"**{p['nombre']}**  ·  {p.get('categoria') or 'Sin categoría'}{badge}",
+                    unsafe_allow_html=True,
+                )
+
+                stock_color = "#a32d2d" if bajo_stock else "inherit"
+                stock_weight = "700" if bajo_stock else "400"
+                st.markdown(
+                    f"""Stock: <span style="color:{stock_color}; font-weight:{stock_weight};">"""
+                    f"""{p['stock']}</span>  ·  Compra: ${p['precio_compra']:,.0f}  ·  """
+                    f"""Venta: ${p['precio_venta']:,.0f}  ·  Proveedor: {proveedor_nombre}""",
+                    unsafe_allow_html=True,
                 )
             with c2:
                 if st.button("🗑️", key=f"del_prod_{p['id']}"):
