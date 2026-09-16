@@ -77,8 +77,25 @@ with col_list:
                 if p.get("notas"):
                     st.caption(p["notas"])
             with c2:
+                # --- Eliminar proveedor: confirmación en dos pasos ---
+                clave_confirm_prov = f"confirmar_del_prov_{p['id']}"
                 if st.button("🗑️", key=f"del_prov_{p['id']}"):
-                    if delete_proveedor(supabase, p["id"]):
+                    st.session_state[clave_confirm_prov] = True
+
+            if st.session_state.get(clave_confirm_prov):
+                st.warning(
+                    f"⚠️ ¿Eliminar al proveedor **{p['nombre']}**? Esta acción no se puede deshacer."
+                )
+                cv1, cv2 = st.columns(2)
+                with cv1:
+                    if st.button("✅ Sí, eliminar", key=f"confirm_yes_prov_{p['id']}", use_container_width=True):
+                        if delete_proveedor(supabase, p["id"]):
+                            del st.session_state[clave_confirm_prov]
+                            avisar(f"🗑️ Proveedor '{p['nombre']}' eliminado.")
+                            st.rerun()
+                with cv2:
+                    if st.button("❌ Cancelar", key=f"confirm_no_prov_{p['id']}", use_container_width=True):
+                        del st.session_state[clave_confirm_prov]
                         st.rerun()
 
             with st.expander("✏️ Editar"):

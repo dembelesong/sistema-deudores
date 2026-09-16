@@ -118,8 +118,26 @@ with col_list:
                     unsafe_allow_html=True,
                 )
             with c2:
+                # --- Eliminar producto: confirmación en dos pasos ---
+                clave_confirm_prod = f"confirmar_del_prod_{p['id']}"
                 if st.button("🗑️", key=f"del_prod_{p['id']}"):
-                    if delete_producto(supabase, p["id"]):
+                    st.session_state[clave_confirm_prod] = True
+
+            if st.session_state.get(clave_confirm_prod):
+                st.warning(
+                    f"⚠️ ¿Eliminar el producto **{p['nombre']}**? "
+                    "Se perderá todo su historial de stock. Esta acción no se puede deshacer."
+                )
+                cp1, cp2 = st.columns(2)
+                with cp1:
+                    if st.button("✅ Sí, eliminar", key=f"confirm_yes_prod_{p['id']}", use_container_width=True):
+                        if delete_producto(supabase, p["id"]):
+                            del st.session_state[clave_confirm_prod]
+                            avisar(f"🗑️ Producto '{p['nombre']}' eliminado.")
+                            st.rerun()
+                with cp2:
+                    if st.button("❌ Cancelar", key=f"confirm_no_prod_{p['id']}", use_container_width=True):
+                        del st.session_state[clave_confirm_prod]
                         st.rerun()
 
             with st.expander("✏️ Editar"):
