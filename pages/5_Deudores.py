@@ -91,8 +91,26 @@ with col_list:
                 if d.get("notas"):
                     st.caption(d["notas"])
             with c2:
+                # --- Eliminar deudor: confirmación en dos pasos ---
+                clave_confirm_deudor = f"confirmar_del_deudor_{d['id']}"
                 if st.button("🗑️", key=f"del_deudor_{d['id']}"):
-                    if delete_deudor(supabase, d["id"]):
+                    st.session_state[clave_confirm_deudor] = True
+
+            if st.session_state.get(clave_confirm_deudor):
+                st.warning(
+                    f"⚠️ ¿Eliminar a **{d['nombre']}** y todo su historial de deudas y abonos? "
+                    "Esta acción no se puede deshacer."
+                )
+                cc1, cc2 = st.columns(2)
+                with cc1:
+                    if st.button("✅ Sí, eliminar", key=f"confirm_yes_deudor_{d['id']}", use_container_width=True):
+                        if delete_deudor(supabase, d["id"]):
+                            del st.session_state[clave_confirm_deudor]
+                            avisar(f"🗑️ Deudor '{d['nombre']}' eliminado.")
+                            st.rerun()
+                with cc2:
+                    if st.button("❌ Cancelar", key=f"confirm_no_deudor_{d['id']}", use_container_width=True):
+                        del st.session_state[clave_confirm_deudor]
                         st.rerun()
 
             m1, m2, m3 = st.columns(3)
@@ -147,14 +165,45 @@ with col_list:
                     with hc1:
                         st.write(f"🔴 Deuda: **${float(deu['monto']):,.0f}**  ·  {deu.get('descripcion') or 'Sin descripción'}  ·  {formatear_fecha_hora(deu['fecha'])}")
                     with hc2:
+                        # --- Eliminar deuda: confirmación en dos pasos ---
+                        clave_confirm_deuda = f"confirmar_del_deuda_{deu['id']}"
                         if st.button("🗑️", key=f"del_deuda_{deu['id']}"):
-                            if delete_deuda(supabase, deu["id"]):
+                            st.session_state[clave_confirm_deuda] = True
+
+                    if st.session_state.get(clave_confirm_deuda):
+                        st.warning(f"⚠️ ¿Eliminar esta deuda de **${float(deu['monto']):,.0f}**? No se puede deshacer.")
+                        cd1, cd2 = st.columns(2)
+                        with cd1:
+                            if st.button("✅ Sí, eliminar", key=f"confirm_yes_deuda_{deu['id']}", use_container_width=True):
+                                if delete_deuda(supabase, deu["id"]):
+                                    del st.session_state[clave_confirm_deuda]
+                                    avisar("🗑️ Deuda eliminada.")
+                                    st.rerun()
+                        with cd2:
+                            if st.button("❌ Cancelar", key=f"confirm_no_deuda_{deu['id']}", use_container_width=True):
+                                del st.session_state[clave_confirm_deuda]
                                 st.rerun()
+
                 for ab in abonos:
                     hc1, hc2 = st.columns([5, 1])
                     with hc1:
                         st.write(f"🟢 Abono: **${float(ab['monto']):,.0f}**  ·  {formatear_fecha_hora(ab['fecha'])}")
                     with hc2:
+                        # --- Eliminar abono: confirmación en dos pasos ---
+                        clave_confirm_abono = f"confirmar_del_abono_{ab['id']}"
                         if st.button("🗑️", key=f"del_abono_{ab['id']}"):
-                            if delete_abono(supabase, ab["id"]):
+                            st.session_state[clave_confirm_abono] = True
+
+                    if st.session_state.get(clave_confirm_abono):
+                        st.warning(f"⚠️ ¿Eliminar este abono de **${float(ab['monto']):,.0f}**? No se puede deshacer.")
+                        ca1, ca2 = st.columns(2)
+                        with ca1:
+                            if st.button("✅ Sí, eliminar", key=f"confirm_yes_abono_{ab['id']}", use_container_width=True):
+                                if delete_abono(supabase, ab["id"]):
+                                    del st.session_state[clave_confirm_abono]
+                                    avisar("🗑️ Abono eliminado.")
+                                    st.rerun()
+                        with ca2:
+                            if st.button("❌ Cancelar", key=f"confirm_no_abono_{ab['id']}", use_container_width=True):
+                                del st.session_state[clave_confirm_abono]
                                 st.rerun()
